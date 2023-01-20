@@ -1,6 +1,11 @@
-import ignition  # type: ignore
 from datetime import datetime
 from typing import Tuple
+import re
+
+import ignition  # type: ignore
+
+# =>[<whitespace>]<URL>[<whitespace><USER-FRIENDLY LINK NAME>]
+REGEX_LINK_LINE = r'=>\s*([^\s]+)(\s+(.*))?'
 
 
 def parse_body(response) -> str:
@@ -45,3 +50,22 @@ def get(url='/', base=None) -> Tuple[list[str], str]:
         body = '<binary data>'
 
     return headers, body
+
+
+def extract_links(body: str) -> list[Tuple[str, str]]:
+    links = []
+
+    for line in body.splitlines():
+        if len(line) < 3:
+            continue
+
+        if line[0] != '=':
+            continue
+
+        match = re.match(REGEX_LINK_LINE, line)
+        if match is None:
+            continue
+
+        links.append((match.group(1), match.group(3)))
+
+    return links
