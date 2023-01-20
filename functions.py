@@ -14,6 +14,8 @@ class Response:
     client_status: int = 0
     server_status: int = 0
 
+    data: str = ''
+
     def __init__(self, url):
         now = datetime.now()
         timestamp = now.strftime('%Y-%m-%d %H:%M')
@@ -28,6 +30,9 @@ class Response:
 
         self.headers.append(f'Client status: {client}')
         self.headers.append(f'Server status: {server}')
+
+    def set_raw_data(self, data: str):
+        self.data = data
 
 
 def parse_body(response) -> str:
@@ -60,6 +65,7 @@ def get(url='/', base=None) -> Tuple[Response, str]:
         return res, f'Fatal. Archive script crashed while crawling {url}'
 
     res.set_status(int(response.basic_status), int(response.status))
+    res.set_raw_data(response.data())
 
     if response.is_a(ignition.ErrorResponse):
         res.headers.append('Certificate: error')
