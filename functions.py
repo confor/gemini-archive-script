@@ -3,6 +3,7 @@ from typing import Tuple
 import re
 
 import ignition  # type: ignore
+from cryptography.hazmat.primitives import hashes
 
 # =>[<whitespace>]<URL>[<whitespace><USER-FRIENDLY LINK NAME>]
 REGEX_LINK_LINE = r'=>\s*([^\s]+)(\s+(.*))?'
@@ -43,6 +44,12 @@ def get(url='/', base=None) -> Tuple[list[str], str]:
 
     headers.append(f'Client status: {response.basic_status}')
     headers.append(f'Server status: {response.status}')
+
+    if response.is_a(ignition.ErrorResponse):
+        headers.append('Certificate: error')
+    else:
+        digest = response.certificate.fingerprint(hashes.MD5()).hex()
+        headers.append(f'Certificate: {digest}')
 
     body = parse_body(response)
 
