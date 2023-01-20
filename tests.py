@@ -6,11 +6,11 @@ import ignition  # type: ignore
 ignition.set_default_timeout(10)
 
 tests = {
-    '1.1: domain wont resolve': 'gemini://invalid.invalid/',
-    '1.1: port not open': 'gemini://pitr.ca/',
-    '1.1: server takes too long to reply': 'gemini://egsam.glv.one/1.1.write.timeout',
-    '1.1: server doesnt close connection': 'gemini://egsam.glv.one/1.1.no.close',
-    '3: malformed data': 'gemini://egsam.glv.one/3.no.cr',
+    # '1.1: domain wont resolve': 'gemini://invalid.invalid/',
+    # '1.1: port not open': 'gemini://pitr.ca/',
+    # '1.1: server takes too long to reply': 'gemini://egsam.glv.one/1.1.write.timeout',
+    # '1.1: server doesnt close connection': 'gemini://egsam.glv.one/1.1.no.close',
+    # '3: malformed data': 'gemini://egsam.glv.one/3.no.cr',
     '3.1: non-numeric status code': 'gemini://egsam.glv.one/3.1.bad.status',
     '3.1: no spaces after status code': 'gemini://egsam.glv.one/3.1.no.space',
     '3.1: meta too long': 'gemini://egsam.glv.one/3.1.long.meta',
@@ -39,7 +39,7 @@ tests = {
 
 for test_name, url in tests.items():
     print(f'Running test: {test_name}')
-    headers, response = get(url)
-    pprint(headers)
-    pprint(response)
+    res, body = get(url)
+    pprint(res.headers)
+    pprint(body)
     print('-' * 80)

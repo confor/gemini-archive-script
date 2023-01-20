@@ -9,6 +9,27 @@ from cryptography.hazmat.primitives import hashes
 REGEX_LINK_LINE = r'=>\s*([^\s]+)(\s+(.*))?'
 
 
+class Response:
+    headers: list = []
+    client_status: int = 0
+    server_status: int = 0
+
+    def __init__(self, url):
+        now = datetime.now()
+        timestamp = now.strftime('%Y-%m-%d %H:%M')
+
+        self.headers = []
+        self.headers.append(f'Date: {timestamp}')
+        self.headers.append(f'URL: {url}')
+
+    def set_status(self, client: int, server: int):
+        self.client_status = client
+        self.server_status = server
+
+        self.headers.append(f'Client status: {client}')
+        self.headers.append(f'Server status: {server}')
+
+
 def parse_body(response) -> str:
     if response.is_a(ignition.ErrorResponse):
         return f'Error while archiving: {response.data()}\n'
@@ -28,35 +49,30 @@ def parse_body(response) -> str:
     return f'Unknown response type or unknown status code. Server says: {response.data()}'
 
 
-def get(url='/', base=None) -> Tuple[list[str], str]:
+def get(url='/', base=None) -> Tuple[Response, str]:
     url = ignition.url(url, base)
-    now = datetime.now()
-    timestamp = now.strftime('%Y-%m-%d %H:%M')
 
-    headers = []
-    headers.append(f'Date: {timestamp}')
-    headers.append(f'URL: {url}')
+    res = Response(url)
 
     try:
         response = ignition.request(url)
     except ValueError:
-        return headers, f'Fatal. Archive script crashed while crawling {url}'
+        return res, f'Fatal. Archive script crashed while crawling {url}'
 
-    headers.append(f'Client status: {response.basic_status}')
-    headers.append(f'Server status: {response.status}')
+    res.set_status(int(response.basic_status), int(response.status))
 
     if response.is_a(ignition.ErrorResponse):
-        headers.append('Certificate: error')
+        res.headers.append('Certificate: error')
     else:
         digest = response.certificate.fingerprint(hashes.MD5()).hex()
-        headers.append(f'Certificate: {digest}')
+        res.headers.append(f'Certificate: {digest}')
 
     body = parse_body(response)
 
     if type(body) == bytes:
         body = '<binary data>'
 
-    return headers, body
+    return res, body
 
 
 def extract_links(body: str) -> list[Tuple[str, str]]:
