@@ -19,7 +19,7 @@ CRAWLER = {}
 
 
 def safe_name(string: str) -> str:
-    pattern = re.compile('[^a-zA-Z0-9_]')
+    pattern = re.compile('[^a-zA-Z0-9_.]')
     return re.sub(pattern, '_', string)
 
 
@@ -38,12 +38,15 @@ def fetch(url, previous_url):
         CRAWLER[url] = True
         return
 
-    print(f'Downloading {url} as {safe_name(url.replace(ROOT, ""))}')
+    if url == '':  # skip path-less root
+        return
+
+    print(f'Downloading {url} as {safe_name(url)}')
     CRAWLER[url] = True
     res, body = get(url)
 
     file_data = '\r\n'.join(res.headers) + '\r\n\r\n' + body
-    file_name = safe_name(url.replace(ROOT, ''))
+    file_name = safe_name(url)
     store(file_name, file_data)
 
     if res.client_status == 3:
