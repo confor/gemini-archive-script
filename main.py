@@ -1,12 +1,19 @@
 import re
 import os
+import sys
 from functions import get, extract_links
 
 import ignition  # type: ignore
-ignition.set_default_timeout(4)
+ignition.set_default_timeout(8)
 
-ROOT = 'gemini://aperalesf.flounder.online/'
-TARGET = 'aperalesf'
+if len(sys.argv) != 3:
+    print('Usage: main.py gemini://example.com/ archive/example.com/')
+    exit(1)
+
+#ROOT = 'gemini://aperalesf.flounder.online/'
+#TARGET = 'aperalesf'
+ROOT = sys.argv[1]
+TARGET = sys.argv[2]
 
 CRAWLER = {}
 
@@ -31,12 +38,13 @@ def fetch(url, previous_url):
         CRAWLER[url] = True
         return
 
-    print(f'Downloading {url} as {safe_name(url)}')
+    print(f'Downloading {url} as {safe_name(url.replace(ROOT, ""))}')
     CRAWLER[url] = True
     res, body = get(url)
 
     file_data = '\r\n'.join(res.headers) + '\r\n\r\n' + body
-    store(safe_name(url), file_data)
+    file_name = safe_name(url.replace(ROOT, ''))
+    store(file_name, file_data)
 
     if res.client_status == 3:
         print(f'Found redirect: {res.data}')
