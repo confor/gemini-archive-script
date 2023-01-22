@@ -17,6 +17,8 @@ TARGET = sys.argv[2]
 
 CRAWLER = {}
 
+IGNORED_EXTS = ['.jpg', '.png', '.ogg']
+
 
 def safe_name(string: str) -> str:
     pattern = re.compile('[^a-zA-Z0-9_.]')
@@ -34,9 +36,14 @@ def fetch(url, previous_url):
     url = ignition.url(url, previous_url)
 
     if not url.startswith(ROOT):
-        print(f'Skipping {url}')
+        #print(f'Skipping {url}')
         CRAWLER[url] = True
         return
+
+    for extension in IGNORED_EXTS:
+        if url.endswith(extension):
+            CRAWLER[url] = True
+            return
 
     if url == '':  # skip path-less root
         return
@@ -56,9 +63,10 @@ def fetch(url, previous_url):
     for new_url, title in extract_links(body):
         new_url_normal = ignition.url(new_url, url)
         if new_url_normal in CRAWLER:
-            print(f'Found old url: {new_url_normal}')
+            #print(f'Found old url: {new_url_normal}')
+            pass
         else:
-            print(f'Found new url: {new_url}')
+            #print(f'Found new url: {new_url_normal}')
             fetch(new_url, url)
 
     return
@@ -69,3 +77,4 @@ if not os.path.isdir(TARGET):
 
 print(f'Crawling {ROOT} and storing in {TARGET}...')
 fetch('/', ROOT)
+print('Finished')
